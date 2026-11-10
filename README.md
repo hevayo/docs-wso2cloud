@@ -1,72 +1,17 @@
-# WSO2 Cloud Docs
+# docs-wso2cloud
 
-Documentation site for WSO2 Cloud, built with [Docusaurus](https://docusaurus.io/).
+A Content repo of WSO2 Docs (docs.wso2.com). It holds this Doc space:
 
-## Prerequisites
+| Directory | Doc space | Editions and branches |
+|---|---|---|
+| `cloud-console/` | Cloud Console: the WSO2 Cloud console's docs, the family Cloud of the Cloud Console family | Cloud on `main` |
 
-Node.js 20 or above.
+It has no Self-hosted version, so there are no release branches. Docs releases are tagged `cloud-<YYYY.MM.DD>.<n>`.
 
-## Install
+The Doc space directory holds `docspace.yaml` (the Doc space manifest), `editions.yaml` (per-Edition variables), `redirects.yaml` (page moves, and the map from the old `docs.wso2.com/docs/…` addresses), `docs/` (pages; folders are the menu) and `assets/` (images).
 
-```bash
-npm install
-```
+The repo root holds only shared files: this README, `CODEOWNERS`, the release workflow (`.github/workflows/docs-bundle-release.yml` releases a Docs bundle on every merge to `main`), the branch ruleset (`.github/branch-ruleset.json`), the editor settings, and `AGENTS.md` and `CLAUDE.md` for agents (they point to `npx @wso2-enterprise/docs help`). The Platform-managed files come from `templates/content-repo/` in `wso2-enterprise/choreolabs-docs`.
 
-## Local development
+The tools are on GitHub Packages. Once per machine, make a classic personal access token with `read:packages` (authorised for the `wso2-enterprise` organisation's SSO if it asks), then run `npm login --scope=@wso2-enterprise --auth-type=legacy --registry=https://npm.pkg.github.com` with your GitHub user name and the token as the password. This repo's `.npmrc` names the registry for `@wso2-enterprise`; it holds no token.
 
-```bash
-npm start
-```
-
-Starts a dev server on <http://localhost:3000> with live reload.
-
-> Static assets in `static/` are copied at startup. Restart the server after
-> changing them.
-
-## Build
-
-```bash
-npm run build
-npm run serve
-```
-
-`npm run build` writes a static site to `build/`. Use `npm run serve` to preview
-it.
-
-## Type checking
-
-```bash
-npm run typecheck
-```
-
-## Layout
-
-The site uses the standard Docusaurus classic theme: navbar, docs sidebar and
-footer. The home page redirects to `docs/intro`. Pages live in `docs/`, and the
-sidebar is generated from that folder.
-
-Search uses
-[`@easyops-cn/docusaurus-search-local`](https://github.com/easyops-cn/docusaurus-search-local).
-The index is built at `npm run build` time, so search returns no results under
-`npm start`. Use `npm run build && npm run serve` to test it.
-
-## Build and run the container
-
-WSO2 Cloud CI builds the image from the `Dockerfile` (see
-`.cicd/wso2cloud-docs.yaml`) and deploys it as the `wso2cloud-docs` component.
-To build and run it locally:
-
-```bash
-docker build -t wso2cloud-docs .
-docker run --rm -p 8080:8080 wso2cloud-docs
-```
-
-The site is served at <http://localhost:8080/>. The image runs nginx as the
-non-root user `choreouser` (UID 10001) on port 8080, using `nginx.conf` from this
-repo. The same image is promoted from dev to stage to prod, so keep
-environment-specific settings out of the build. The only exception is `url` in
-`docusaurus.config.ts`, which must be the production docs host.
-
-## License
-
-Apache License 2.0. See [LICENSE](LICENSE).
+Get started, from setting up your computer to a Docs release going live: the WSO2 Docs Platform's README, https://github.com/wso2-enterprise/choreolabs-docs#readme.
