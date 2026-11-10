@@ -1,0 +1,5 @@
+label: Manage your organization
+position: 3
+collapsed: false
+customProps:
+  icon: octicons/organization-16

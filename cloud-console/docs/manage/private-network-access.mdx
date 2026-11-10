@@ -1,16 +1,15 @@
 ---
-sidebar_position: 9
 title: Set up private network access
 description: Connect an environment to your Tailscale network so workloads can reach private databases, internal APIs, and other services that aren't on the internet.
+type: how-to
+sidebar_position: 9
 ---
-
-# Set up private network access
 
 This article shows you how to let workloads in your organization reach private endpoints, such as databases, internal APIs, and message brokers, that run in your own network and aren't on the internet.
 
 You connect each environment to your [Tailscale](https://tailscale.com) network (tailnet) once. WSO2 Cloud then runs a gateway for your organization in that environment, which joins your tailnet and opens an outbound tunnel. Workloads in the projects you allow connect to the gateway, and the gateway forwards their traffic through the tunnel to the private endpoint.
 
-![A workload in an allowed project connects to the private network gateway, which forwards the traffic through an outbound Tailscale tunnel to a subnet router and on to the private endpoint.](/img/private-network-access.svg)
+![A workload in an allowed project connects to the private network gateway, which forwards the traffic through an outbound Tailscale tunnel to a subnet router and on to the private endpoint.](../../assets/img/private-network-access.svg)
 
 ## How it works
 
