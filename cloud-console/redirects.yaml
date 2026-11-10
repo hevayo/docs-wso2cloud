@@ -10,36 +10,36 @@ legacy:
   - from: https://docs.wso2.com/docs/get-started/key-concepts/
     to: get-started/key-concepts
   - from: https://docs.wso2.com/docs/manage/organizations/
-    to: manage/organizations
+    to: guides/organizations
   - from: https://docs.wso2.com/docs/manage/view-organization-details/
-    to: manage/view-organization-details
+    to: guides/view-organization-details
   - from: https://docs.wso2.com/docs/manage/access-control/
-    to: manage/access-control
+    to: guides/access-control
   - from: https://docs.wso2.com/docs/manage/invite-users/
-    to: manage/invite-users
+    to: guides/invite-users
   - from: https://docs.wso2.com/docs/manage/enterprise-sign-in/
-    to: manage/enterprise-sign-in
+    to: guides/enterprise-sign-in
   - from: https://docs.wso2.com/docs/manage/manage-service-contacts/
-    to: manage/manage-service-contacts
+    to: guides/manage-service-contacts
   - from: https://docs.wso2.com/docs/manage/subscriptions-and-billing/
-    to: manage/subscriptions-and-billing
+    to: guides/subscriptions-and-billing
   - from: https://docs.wso2.com/docs/manage/manage-your-subscription/
-    to: manage/manage-your-subscription
+    to: guides/manage-your-subscription
   - from: https://docs.wso2.com/docs/manage/private-network-access/
-    to: manage/private-network-access
+    to: guides/private-network-access
   - from: https://docs.wso2.com/docs/architecture/overview/
-    to: architecture/overview
+    to: concepts/architecture/overview
   - from: https://docs.wso2.com/docs/architecture/data-planes/
-    to: architecture/data-planes
+    to: concepts/architecture/data-planes
   - from: https://docs.wso2.com/docs/security/overview/
-    to: security/overview
+    to: concepts/security/overview
   - from: https://docs.wso2.com/docs/security/data-residency/
-    to: security/data-residency
+    to: concepts/security/data-residency
   - from: https://docs.wso2.com/docs/reference/faq/
     to: reference/faq
   - from: https://docs.wso2.com/docs/reference/glossary/
     to: reference/glossary
   - from: https://docs.wso2.com/docs/support/
-    to: support
+    to: reference/support
   - from: https://docs.wso2.com/docs/
     to: ''
