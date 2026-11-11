@@ -15,3 +15,4 @@ issues:
   repo: wso2/docs-wso2cloud
 editions:
   - id: cloud
+    branch: docs-v2
