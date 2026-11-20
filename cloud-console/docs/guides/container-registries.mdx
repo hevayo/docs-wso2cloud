@@ -1,0 +1,69 @@
+---
+title: Manage container registries
+description: Add the public and private container registries your components pull prebuilt images from, update their credentials, and remove them.
+type: how-to
+sidebar_position: 9
+---
+
+This article shows you how to connect container registries, such as `ghcr.io` or `docker.io`, to your organization. Components can then be deployed from prebuilt images in them. Credentials are kept in a secret store and never shown again.
+
+:::note
+Container registries are currently available only for organizations on a [private data plane (PDP)](../concepts/architecture/data-planes.mdx#private-data-plane-pdp).
+:::
+
+## Prerequisites
+
+- The **OrganizationAdmin** role in the organization.
+
+## Add a registry
+
+1. Sign in to the [Choreo Cloud console](https://console.cloud.choreolabs.com).
+2. In the sidebar, under **Admin**, select **Container Registries**.
+3. Select **Add Container Registries**.
+4. Enter a **Display name** and the **Registry host**, for example `ghcr.io`. Don't include `https://`.
+5. Under **Authentication**, select one of these:
+   - **Public**: no credential needed.
+   - **Username + token**: enter a username and a read-only access token.
+   - **Docker config JSON**: paste the contents of a Docker `config.json` file.
+6. Optionally, enter a **Test image** the registry should be able to pull, such as `team/app:1.0`. Select **Test connection** to check the connection. It doesn't save anything.
+7. Select **Save registry**. If you entered a test image and it pulls, the registry is marked **Verified**.
+
+A registry shows one of these statuses:
+
+- **Verified**: the test image was pulled with the registry's credential.
+- **Unverified**: an authenticated registry that has no pulled test image, for example because you didn't enter one or the login was refused.
+- **No credential**: a public registry, which has no credential to check.
+
+## Use a registry in a component
+
+In the Integration platform, when you create a component from a prebuilt image, select one of your organization's registries and enter the image, relative to the registry host. The component pulls the image with that registry's credential.
+
+:::note
+Selecting a registry when you create a component is currently available only in the Integration platform.
+:::
+
+## Update credentials
+
+1. Go to **Admin** > **Container Registries**.
+2. In the registry's row, select the edit icon.
+3. Enter the new credential. For **Username + token**, enter both fields.
+4. Select **Update credentials**.
+
+Components that use the registry pick up the new credential with no change. Without a test image, the status becomes **Unverified**.
+
+Public registries have no credential, so their edit icon is turned off and you can't update credentials for them.
+
+## Delete a registry
+
+1. Go to **Admin** > **Container Registries**.
+2. In the registry's row, select the delete icon.
+3. Type the registry's display name to confirm, and select **Delete registry**.
+
+You can't delete a registry while components use it. Public registries are the exception: components that use them aren't counted, so this check doesn't stop you from deleting one.
+
+Components that pull images from a deleted registry fail with image pull errors on new deployments and pod restarts until you point them at another registry. Deleting a registry also deletes its credential, and can't be undone.
+
+## Next steps
+
+- [Data planes](../concepts/architecture/data-planes.mdx)
+- [Access control](./access-control.mdx)

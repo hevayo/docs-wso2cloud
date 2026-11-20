@@ -1,0 +1,151 @@
+---
+title: Set up notification channels
+description: Create webhook and email channels that receive alerts in each environment, choose an environment's default channel, and send test alerts.
+type: reference
+sidebar_position: 2
+---
+
+This article shows you how to create the notification channels that receive your alerts. A channel is a webhook or a list of email addresses, and it belongs to one environment. To learn how alerts work, see [Alerts](./alerts.mdx).
+
+## How it works
+
+- **One environment per channel.** A channel only receives alerts from rules in its environment. Create channels in each environment where you want alerts.
+- **A default per environment.** The first channel you create in an environment is its default. Rules send to the default channel unless you pick other channels for them. You can make another channel the default, but you can't clear it.
+- **Your own mail server.** Email channels send through an SMTP server you provide, with your own from address.
+- **Write-only secrets.** Secret headers and mail server logins are stored in a secret store. They can't be viewed in the console or through the API after you save.
+- **Public hosts only.** Webhook URLs and mail servers must be public hosts. Private, loopback, and internal addresses aren't allowed.
+
+## Prerequisites
+
+- Membership in the **Admin** or **Platform Engineer** group of the organization.
+- For a webhook channel, an HTTPS endpoint that accepts a JSON `POST` request. See [Webhook payload](#webhook-payload).
+- For an email channel, an SMTP server that supports STARTTLS on port `587` or `2525`.
+
+## Create a channel
+
+1. Sign in to the [Choreo Cloud console](https://console.cloud.choreolabs.com).
+2. In the left navigation, select **Observability**, then **Alerts**.
+3. Select the **Channels** tab, then select **Create channel**.
+4. In **Name**, enter a name for the channel, such as `ops-webhook`. Use lowercase letters, numbers, and hyphens, starting and ending with a letter or number.
+5. Optionally, in **Display name**, enter the name the console shows for the channel.
+6. In **Environment**, select the environment the channel receives alerts from.
+7. In **Type**, select **Webhook** or **Email**.
+8. To make this channel the environment's default, select **Default channel for this environment**. It replaces the current default. The first channel you create in an environment is always its default.
+9. Fill in the destination, as described in [Webhook destination](#webhook-destination) or [Email destination](#email-destination).
+10. To check the destination, select **Send test alert** or **Send test email**. See [Test a channel](#test-a-channel).
+11. Select **Create**.
+
+You can't change a channel's name, environment, or type after you create it.
+
+### Webhook destination
+
+1. In **Webhook URL**, enter the URL that receives alerts, such as `https://alerts.example.com/hooks/choreocloud`.
+2. To send headers with every alert, select **Add header**, and for each header:
+   - Select **Plain** or **Secret**. Use **Secret** for credentials, such as an API key.
+   - Enter the header's name and value.
+
+The `Authorization`, `Proxy-Authorization`, and `Cookie` headers must be **Secret**. The `Host`, `Content-Length`, `Content-Type`, `Transfer-Encoding`, and `Connection` headers can't be set.
+
+:::caution
+Use an HTTPS URL. HTTP URLs are accepted, but alerts sent over HTTP aren't encrypted, including their headers, so a secret header such as an API key can be read on the way.
+:::
+
+### Email destination
+
+1. In **Emails**, type each recipient's email address and press Enter.
+2. Under **Mail server**, enter your SMTP server's details:
+   - **Host**: the server's host name or IPv4 address, without a scheme or port, such as `smtp.example.com`.
+   - **Port**: `587` or `2525`. Alerts are sent with STARTTLS, so port `465` isn't supported.
+   - **From name**: optionally, the sender name recipients see, such as `Example Alerts`.
+   - **From address**: the address alerts are sent from, such as `alerts@example.com`.
+   - **Username** and **Password**: the server's login. Enter both, or leave both empty if your server doesn't need a login.
+
+## Test a channel
+
+On the channel's form, select **Send test alert** for a webhook, or **Send test email** for an email channel. The test uses what the form holds, so you can test before you save.
+
+| Result | Meaning |
+| --- | --- |
+| Success | The webhook accepted the test alert, or the mail server accepted the test email. |
+| Warning | The webhook was reached, but it returned an error status. Check that it accepts the payload and headers. |
+| Error | The webhook or mail server couldn't be reached, or refused the request. The message shows the reason. |
+
+Tests are rate-limited for each organization. If you send too many, wait a few minutes and try again.
+
+## Webhook payload
+
+When a rule fires, Choreo Cloud sends a `POST` request with a JSON body to the webhook URL, with the channel's headers. All values are strings. For example:
+
+```json
+{
+  "alertName": "high-cpu",
+  "alertSeverity": "critical",
+  "alertDescription": "CPU above 80% for 5 minutes",
+  "alertType": "metric",
+  "alertValue": "92.5",
+  "alertThreshold": "80",
+  "alertTimestamp": "2026-11-09T08:15:00Z",
+  "component": "orders-api",
+  "project": "orders",
+  "environment": "production",
+  "deploymentTrack": ""
+}
+```
+
+| Field | Value |
+| --- | --- |
+| `alertName` | The rule's name. |
+| `alertSeverity` | `info`, `warning`, or `critical`. |
+| `alertDescription` | The rule's description. |
+| `alertType` | `metric` for a CPU or memory rule, `log` for a log rule. |
+| `alertValue` | The measured value: a percentage for a metric rule, or a number of log lines for a log rule. |
+| `alertThreshold` | The rule's threshold. |
+| `alertTimestamp` | When the alert fired. |
+| `component`, `project`, `environment` | Where the alert fired. |
+| `deploymentTrack` | The component's deployment track, or empty for its default track. |
+
+## Email alerts
+
+An alert email's subject names the severity, the rule, and the environment, such as `[critical] high-cpu triggered in production`. The email shows the rule's description, the component, deployment track, project, environment, measured value, threshold, and time.
+
+## Manage channels
+
+On the **Channels** tab, use **Search by channel name**, or filter the list by **Environment** or **Type**. The **Sends to** column shows each channel's recipients, or its webhook URL with most of the path hidden, such as `https://hooks.example.com/…1234`. Webhook URLs often contain a token, so the full URL isn't shown after you save.
+
+### Edit a channel
+
+1. In the channel's row, select the edit icon.
+2. Change the channel, then select **Save**.
+
+The saved webhook URL isn't shown. To keep it, leave **Webhook URL** empty. Saved secret values aren't shown either. To change one, select **Replace** and enter the new value. If you change the webhook URL, enter the secret header values again. If you change the mail server's host or port, enter the login again.
+
+### Change an environment's default channel
+
+Edit the channel you want as the default, select **Default channel for this environment**, and select **Save**. The previous default stops being the default. You can't clear a channel's default setting directly. To change the default, make another channel the default.
+
+### Delete a channel
+
+1. In the channel's row, select the delete icon.
+2. Select **Delete** to confirm.
+
+Alerts are no longer sent to the channel, and this can't be undone.
+
+You can't delete a channel while rules send to it. That includes rules that pick it, and, for an environment's default channel, rules in that environment that pick no channels. The message lists those rules. Edit them to pick another channel, or make another channel the default, then delete the channel.
+
+If you delete a default channel that no rule uses, the environment has no default until you make another channel the default. Until then, rules in that environment must pick their channels.
+
+## Troubleshoot
+
+| Problem | What to check |
+| --- | --- |
+| "The webhook URL must point to a public host" or "The mail server must be a public host" | The host is reachable on the internet, and doesn't resolve to a private, loopback, or internal address. |
+| The test email fails | The server supports STARTTLS on the port you selected, the from address is allowed to send through it, and the login is correct. |
+| The test alert shows a warning | The webhook accepts a JSON `POST` request, and the headers it needs, such as an API key, are set. |
+| You can't select an environment | The environment already has 10 channels. Delete one first. |
+| You can't delete a channel | Rules still send to it. See [Delete a channel](#delete-a-channel). |
+| You can't create or edit channels | You're in the **Admin** or **Platform Engineer** group. |
+
+## Next steps
+
+- [Create alert rules](./alert-rules.mdx)
+- [View alert history](./alert-history.mdx)

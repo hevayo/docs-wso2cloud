@@ -1,0 +1,131 @@
+---
+title: Create alert rules
+description: Create alert rules that watch a component's CPU usage, memory usage, or logs, choose where each environment sends alerts, and track each rule's status.
+type: reference
+sidebar_position: 3
+---
+
+This article shows you how to create alert rules that watch a component and send alerts to your notification channels. To learn how alerts work, see [Alerts](./alerts.mdx).
+
+## How it works
+
+- **A rule belongs to a component.** It runs in every environment the component is deployed to. Each environment sends the rule's alerts to its own channels.
+- **Metric or log rules.** A metric rule watches the component's CPU or memory usage, as a percentage. A log rule counts the component's log lines that contain a text you choose.
+- **Checked on a schedule.** Each check looks back over the rule's window, such as the last 10 minutes, and fires when the value meets the condition.
+- **Deployed with the component.** Saving a rule applies it to each environment the component runs in. If an environment runs an older version of the component, the rule applies there on the component's next deploy.
+- **Deployment tracks.** Each deployment track of a component has its own rules, and also runs the default track's rules. See [Rules on deployment tracks](#rules-on-deployment-tracks).
+
+## Prerequisites
+
+- Membership in the **Admin**, **Platform Engineer**, or **Developer** group of the organization.
+- A component that's deployed to at least one environment.
+- A notification channel in each environment the component is deployed to. See [Set up notification channels](./notification-channels.mdx).
+
+## Create a rule
+
+1. Sign in to the [Choreo Cloud console](https://console.cloud.choreolabs.com).
+2. In the left navigation, select **Observability**, then **Alerts**.
+3. Select the **Rules** tab, then select **Create rule**.
+4. Under **Component**, select the **Project**, the **Component**, and the **Deployment track**. Keep **Default** unless you want the rule on one deployment track only. For a component with no other deployment tracks, **Default** is the only choice.
+5. Under **Alert definition**, define the rule, as described in [Rule settings](#rule-settings).
+6. Under **Recipients**, choose where each environment sends alerts, as described in [Recipients](#recipients).
+7. Select **Create**.
+
+The rule appears on the **Rules** tab. Its status shows **Deploying** while it's applied to each environment.
+
+### Rule settings
+
+| Setting | What to enter |
+| --- | --- |
+| **Name** | A name for the rule, such as `high-cpu`. Use lowercase letters, numbers, and hyphens, starting and ending with a letter or number, up to 40 characters. You can't change it later. |
+| **Description** | What the alert means, such as `CPU above 80% for 5 minutes`. It's included in every alert. Up to 500 characters, without `<`, `>`, or `&`. |
+| **Severity** | **Info**, **Warning**, or **Critical**. |
+| **Type** | **Metric** to watch CPU or memory usage, or **Logs** to count log lines. |
+| **Metric** | For a metric rule, **CPU usage** or **Memory usage**. |
+| **Log query** | For a log rule, the text a log line must contain to be counted, such as `ERROR`. From 3 to 500 characters. |
+| **Operator** | How the value is compared with the threshold: `>`, `≥`, `<`, or `≤`. Log rules can also use `=`. |
+| **Threshold** | For a metric rule, a percentage from 1 to 99. For a log rule, a number of log lines from 1 to 10,000. |
+| **Window** | How far back each check looks: 5, 10, 15, or 30 minutes, or 1 hour. |
+| **Check every** | How often the rule is checked: 5, 10, 15, or 30 minutes, or 1 hour. |
+
+The window must be at least as long as **Check every**, and at most 3 times as long. For example, with checks every 10 minutes, the window can be 10, 15, or 30 minutes.
+
+For example, a log rule with the log query `ERROR`, the operator `>`, a threshold of `10`, a window of 10 minutes, and a check every 5 minutes fires when more than 10 log lines contain `ERROR` in the last 10 minutes. It's checked every 5 minutes.
+
+### Recipients
+
+**Recipients** lists each environment the component is deployed to. For each environment:
+
+- Turn the switch on to send alerts from that environment, or off to stop them. To change every environment at once, select **Turn all on** or **Turn all off**.
+- Leave the channels empty to send to the environment's default channel, or pick up to 5 channels.
+
+An environment with no default channel needs at least one channel picked, even with its alerts off. If an environment has no channels yet, select **Create channel** to add one without leaving the form.
+
+## Rule status
+
+The **Status** column shows a rule's state across its environments. To see each environment's state and channels, select the arrow next to the rule.
+
+| Status | Meaning |
+| --- | --- |
+| **Active** | The rule runs in its environments. If alerts are off in some, the status shows how many environments run it, such as `2 of 3 environments`. |
+| **Deploying** | The rule is being applied in at least one environment. |
+| **Needs attention** | The rule doesn't run as set up in at least one environment. Open the rule's details to see why. |
+| **Inactive** | Alerts are off in every environment. |
+
+In the rule's details, each environment shows one of these states:
+
+| State | Meaning |
+| --- | --- |
+| **Active** | The rule runs, and sends alerts to the listed channels. |
+| **Applying** | The rule is being applied. |
+| **Waiting for deploy** | The component has changes that aren't deployed to the environment yet. The rule applies there on the component's next deploy. |
+| **Failed** | The rule couldn't be set up in the environment, so it won't fire. Save the rule again to retry. |
+| **No channel** | The environment has no default channel and the rule picks none. Edit the rule to pick a channel. |
+| **Channel deleted** | A channel the rule picks was deleted. Edit the rule to remove it. |
+| **Disabled** | Alerts are off in the environment. |
+
+You can only create a rule on a component that's deployed. If the component is later undeployed from every environment, its rules show **Needs attention**, and run again once the component is deployed.
+
+## Rules on deployment tracks
+
+If a component has deployment tracks other than **Default**, each deployment track has its own rules and also runs the default track's rules. The **Deployment track** column shows where a rule comes from:
+
+| Label | Meaning |
+| --- | --- |
+| **From default** | The deployment track runs the default track's rule as it is. Changes to the default track's rule apply to the deployment track on its next deploy. |
+| **Changed from default** | The deployment track has its own version of a default track rule. It no longer gets the default track's changes. |
+
+To change a default track rule for one deployment track only, edit the rule in that deployment track's row. The deployment track then gets its own version. To go back to the default track's version, select the delete icon in the row, then **Reset**. You can't delete a rule that comes from the default track, but you can edit it to turn off its alerts for the deployment track.
+
+## Manage rules
+
+On the **Rules** tab, use **Search by rule name**, or filter the list by **Project**, **Component**, **Deployment track**, or **Severity**. Select a project before filtering by component, and a component before filtering by deployment track.
+
+### Edit a rule
+
+1. In the rule's row, select the edit icon.
+2. Change the rule, then select **Save**.
+
+If your changes stop alerts going to some channels, the console lists them and asks you to confirm.
+
+### Delete a rule
+
+1. In the rule's row, select the delete icon.
+2. Select **Delete** to confirm.
+
+The rule is removed from every environment, and this can't be undone. Deleting a default track rule also removes it from the deployment tracks that run it, including their own versions of it. If an environment runs an older version of the component, the rule is turned off there right away, and fully removed on the component's next deploy.
+
+## Troubleshoot
+
+| Problem | What to check |
+| --- | --- |
+| "Your plan allows *N* alert rules. Upgrade it to add more." | Your organization has reached its Choreo Cloud plan's alert rule limit. Delete rules you don't need, or [upgrade your subscription](../guides/subscriptions-and-billing.mdx#subscribe-to-enterprise). |
+| You can't create a rule on a component | The component is deployed to at least one environment, and has fewer than 10 rules on the deployment track. Scheduled automations don't support alert rules. For other types that don't, the form says "Alert rules aren't available for this component's type." |
+| The form says an environment has no default channel | Pick a channel for the environment, or [create a channel](./notification-channels.mdx#create-a-channel) there. |
+| The rule shows **Waiting for deploy** | Deploy the component to the environment. |
+| The rule fires, but no one is notified | On the **History** tab, check the alert's **Channels**. Then [test the channel](./notification-channels.mdx#test-a-channel). |
+
+## Next steps
+
+- [View alert history](./alert-history.mdx)
+- [Set up notification channels](./notification-channels.mdx)

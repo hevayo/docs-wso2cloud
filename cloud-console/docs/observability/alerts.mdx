@@ -1,0 +1,65 @@
+---
+title: Alerts
+description: How alerts work in Choreo Cloud, with alert rules on components, notification channels per environment, and a history of every alert.
+type: reference
+sidebar_position: 1
+---
+
+Alerts tell you when a component needs attention, such as when its CPU usage stays high or its logs show errors. You set up alerts with two parts:
+
+- An **alert rule** watches one component, for example CPU usage above 80% over 5 minutes, or more than 10 log lines that contain `ERROR`.
+- A **notification channel** is where alerts go: a webhook or a list of email addresses. Each channel belongs to one environment.
+
+## How it works
+
+1. You create notification channels in each environment where you want alerts. The first channel in an environment is its default.
+2. You create an alert rule on a component. The rule runs in every environment the component is deployed to, and you choose where each environment's alerts go.
+3. Choreo Cloud checks the rule on a schedule, such as every 5 minutes. When the condition is met, the rule fires and sends an alert to the environment's channels.
+4. Every alert is recorded in the alert history.
+
+A rule belongs to a component, not to an environment. Development and Production run the same rule, but each sends to its own channels, so production alerts can go to your on-call team while development alerts go to the developers.
+
+## Where to find alerts
+
+1. Sign in to the [Choreo Cloud console](https://console.cloud.choreolabs.com).
+2. In the left navigation, select **Observability**, then **Alerts**.
+
+The page has three tabs:
+
+- **History** lists the alerts that fired. See [View alert history](./alert-history.mdx).
+- **Rules** lists the alert rules and their status in each environment. See [Create alert rules](./alert-rules.mdx).
+- **Channels** lists the notification channels. See [Set up notification channels](./notification-channels.mdx).
+
+The page shows the whole organization. To see one project only, select the project in the top bar.
+
+## Who can use alerts
+
+What you see depends on your group's role. See [Access control](../guides/access-control.mdx).
+
+| Role | History | Rules | Channels |
+| --- | :-: | :-: | :-: |
+| **Admin** | View | Manage | Manage |
+| **Platform Engineer** | View | Manage | Manage |
+| **Developer** | View | Manage | |
+| **Viewer** | View | | |
+| **API Publisher** | | | |
+
+Developers pick from the existing channels when they create rules, but only Admins and Platform Engineers can add, change, or delete channels.
+
+## Limits
+
+| Limit | Value |
+| --- | --- |
+| Alert rules per organization | Set by your organization's Choreo Cloud plan: 1,000 on the **Enterprise** plan, 10 on the **Trial** plan |
+| Alert rules per component | 10 per deployment track |
+| Notification channels | 10 per environment |
+| Channels per rule | 5 per environment |
+| Email recipients | 20 per channel |
+| Webhook headers | 10 per channel |
+
+The alert rule limit applies to the whole organization, across every service. When your organization reaches it, the console shows "Your plan allows *N* alert rules. Upgrade it to add more.", where *N* is your plan's limit. To upgrade, see [Subscribe to Enterprise](../guides/subscriptions-and-billing.mdx#subscribe-to-enterprise).
+
+## Next steps
+
+- [Set up notification channels](./notification-channels.mdx)
+- [Create alert rules](./alert-rules.mdx)

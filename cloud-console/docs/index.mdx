@@ -1,0 +1,67 @@
+---
+title: What is Choreo Cloud?
+description: Choreo Cloud is one platform, delivered as a service, for building, running, securing, and governing AI agents, APIs, and integrations.  # generated from the first paragraph; a writer should improve it
+type: concept
+sidebar_position: 0
+---
+
+Choreo Cloud is one platform, delivered as a service, for building, running, securing, and governing AI agents, APIs, and integrations. It is the Choreo Labs agentic enterprise fabric: each capability is a service, and every service shares the same console, organization, projects, and environments.
+
+## Services
+
+Each service covers the full lifecycle of one kind of work, including governance. Every service is part of the [Choreo Cloud console](https://console.cloud.choreolabs.com) and has its own documentation.
+
+### Agent Management
+
+An open control plane for deploying, managing, and governing AI agents at scale. Use it to run agents in production, manage their versions and configurations, enforce governance policies, and observe and continuously evaluate agent behavior. It also governs agents deployed outside Choreo Cloud.
+
+[Agent Management documentation](docs:agent-management/cloud/)
+
+### API Management
+
+Management, security, and governance for your APIs and AI services. Use it to proxy REST APIs, route traffic to LLM providers such as OpenAI or Anthropic, and expose your services as MCP tools for AI agents. It covers the full API lifecycle, from design and deployment to governance and monetization, with developer portals, subscriptions, policies, and analytics.
+
+[API Management documentation](https://choreolabs.com/api-platform/docs/)
+
+### Integration Management
+
+A managed cloud environment for integrations built with WSO2 Integrator. Use it to push an integration to the cloud, track builds and deployments, promote it across environments, configure runtime values and security, and monitor logs and metrics, without managing infrastructure.
+
+[Integration Management documentation](https://choreolabs.com/integration-platform/docs/)
+
+### Identity and Access Management
+
+API-first identity orchestration for both people and AI agents. Use it to add sign-in, multi-factor and passwordless authentication, API authorization, and user management to your applications, and to secure MCP servers and AI agents.
+
+[Identity and Access Management documentation](https://choreolabs.com/identity-platform/docs/)
+
+## One organization across every service
+
+An organization is the top-level tenant boundary in Choreo Cloud. You create one when you sign up, and every service you use belongs to it. Your account is you, the person who signs in. Your organization is the tenant your team shares. See [Organizations](./guides/organizations.mdx).
+
+Choreo Cloud owns what is common to all services:
+
+- **Users.** You invite users to the organization, and add each one to a [group](./guides/access-control.mdx#groups) that decides what they can do.
+- **Projects and environments.** A project or environment you create in one service is available in every service, so one project can hold agents, integrations, and APIs together.
+- **Billing.** Billing works the same way for every service. Each service has its own subscription plan and is billed separately. Every organization starts with a 30-day free trial of all services. See [Subscriptions and billing](./guides/subscriptions-and-billing.mdx).
+
+Each service owns the components you build with it, such as agents, integrations, APIs, or identity providers. Each service uses its own names for them, and their documentation lives with that service. See [Key concepts](./get-started/key-concepts.mdx).
+
+Each service also separates its control plane, where you manage, from its data plane, where your components run. See [Architecture overview](./concepts/architecture/overview.mdx).
+
+## Why a fabric, not separate products
+
+Software in production depends on the capabilities around it:
+
+- An API needs identity and analytics to be secure and observable.
+- An integration needs to be exposed and governed.
+- An AI agent needs all of these.
+
+When these capabilities come from one platform, they share the same organization, users, projects, and environments, so you don't have to connect separate products yourself. This matters most for AI agents, which depend on the identity, integrations, APIs, and observability around them.
+
+## Next steps
+
+- [Sign up and create your organization](./get-started/sign-up.mdx)
+- [Learn the key concepts](./get-started/key-concepts.mdx)
+- [Invite users to your organization](./guides/invite-users.mdx)
+- [Architecture overview](./concepts/architecture/overview.mdx)

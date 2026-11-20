@@ -1,0 +1,188 @@
+---
+title: Set up private network access
+description: Connect an environment to your Tailscale network so workloads can reach private databases, internal APIs, and other services that aren't on the internet.
+type: how-to
+sidebar_position: 8
+---
+
+This article shows you how to let workloads in your organization reach private endpoints, such as databases, internal APIs, and message brokers, that run in your own network and aren't on the internet.
+
+You connect each environment to your [Tailscale](https://tailscale.com) network (tailnet) once. Choreo Cloud then runs a gateway for your organization in that environment, which joins your tailnet and opens an outbound tunnel. Workloads in the projects you allow connect to the gateway, and the gateway forwards their traffic through the tunnel to the private endpoint.
+
+![A workload in an allowed project connects to the private network gateway, which forwards the traffic through an outbound Tailscale tunnel to a subnet router and on to the private endpoint.](../../assets/img/private-network-access.svg)
+
+## How it works
+
+- **One connection per environment.** Development and Production each have their own gateway, tunnel, and endpoints. Production traffic never goes through the Development tunnel.
+- **Your organization only.** Only workloads in your organization, in the same environment, can reach the gateway. For each endpoint, you choose which projects can use it.
+- **Outbound only.** Workloads in Choreo Cloud connect to your private endpoints. Your network can't connect to workloads through the tunnel.
+- **TCP only.** Endpoints must use TCP, such as PostgreSQL, MySQL, Redis, Kafka, or HTTPS. UDP and ICMP (ping) aren't supported.
+- **You bring the tailnet.** Choreo Cloud doesn't run or manage your tailnet. The gateway joins it as two devices, using an auth key you create.
+
+## Prerequisites
+
+- Membership in the **Admin** or **Platform Engineer** group of the organization.
+- A Tailscale tailnet that you administer. To create one, see the [Tailscale quickstart](https://tailscale.com/docs/how-to/quickstart).
+- A [subnet router](https://tailscale.com/docs/features/subnet-routers) in your network that advertises the address ranges of your private endpoints, with those routes approved.
+- A Tailscale auth key for the gateway, with the settings in [Create an auth key](#create-an-auth-key).
+
+## Prepare your tailnet
+
+Choreo Cloud doesn't change your tailnet. You create the auth key the gateway joins with, and, if your tailnet restricts access, allow the gateway to reach your endpoints.
+
+### Create an auth key
+
+Generate an auth key in the Tailscale admin console, as described in [Auth keys](https://tailscale.com/docs/features/access-control/auth-keys), with these settings:
+
+| Setting | Value | Why |
+| --- | --- | --- |
+| **Reusable** | On | The gateway runs two devices, and new devices replace them when the gateway restarts or updates. All of them join with the same key. |
+| **Ephemeral** | On | Gateway devices that stop are removed from your tailnet by themselves. |
+| **Tags** | Optional, such as `tag:choreocloud` | Gateway devices get these tags, so your access policy can allow them by tag. |
+| **Expiration** | Up to 90 days | Tailscale's limit. Plan to [rotate the key](#rotate-the-auth-key) before it expires. |
+
+Copy the key when Tailscale shows it. It's shown only once.
+
+:::caution
+Running gateway devices stay connected after the key expires, but new devices can't join, for example when the gateway restarts. [Rotate the auth key](#rotate-the-auth-key) before it expires.
+:::
+
+### Allow the gateway in your access policy
+
+If your tailnet's [access policy](https://tailscale.com/docs/features/access-control/grants) doesn't allow all traffic, add a rule that lets the gateway devices reach each private endpoint and port. For example, with the `tag:choreocloud` tag on the auth key, this lets the gateway reach a database at `10.20.0.15` on port `5432`:
+
+```json
+{
+  "tagOwners": {
+    "tag:choreocloud": ["autogroup:admin"]
+  },
+  "grants": [
+    {
+      "src": ["tag:choreocloud"],
+      "dst": ["10.20.0.15/32"],
+      "ip": ["tcp:5432"]
+    }
+  ]
+}
+```
+
+Allow only the addresses and ports of your endpoints, not whole networks. Use the same tag for the Development and Production auth keys only if both may reach the same endpoints. Otherwise, use a tag per environment.
+
+## Connect an environment
+
+1. Sign in to the [Choreo Cloud console](https://console.cloud.choreolabs.com).
+2. In the top bar, select **Settings**, then under **Infrastructure**, select **Private Network**.
+3. Select the environment tab, **Development** or **Production**.
+4. Select **Set up private network**.
+5. In **Tailnet**, enter your tailnet name, for example `acme-corp.ts.net`.
+6. In **Authentication**, keep **Reusable ephemeral auth key**.
+7. In **Auth key**, paste the auth key you created.
+8. Select **Create connection**.
+
+The status shows **Connecting** while the gateway starts and joins your tailnet. This usually takes a minute or two. When the status is **Tunnel up**, two new devices from the gateway appear in your Tailscale admin console.
+
+The auth key is stored in a secret store. It's write-only, so no one can view it again, in the console or elsewhere.
+
+## Add an endpoint
+
+An endpoint is one private host and port that workloads can reach.
+
+1. On the **Private Network** page, select the environment tab.
+2. Select **Add endpoint**.
+3. In **Name**, enter a name for the endpoint, such as `orders-db`. Use lowercase letters, numbers, and hyphens, starting with a letter.
+4. In **Target host or IP**, enter the private address of the endpoint, such as `10.20.0.15` or `db.internal.acme.com`. Your subnet router must be able to reach it.
+5. In **Port**, enter the TCP port of the endpoint, such as `5432`.
+6. In **Who can use this endpoint**, select one of these:
+   - **Selected projects**: only the projects you select in **Allowed projects** can use it.
+   - **All projects in this environment**: every current and future project in the environment can use it.
+7. Select **Add endpoint**.
+
+The endpoint appears in the **Endpoints** list, with its **Workload address**. The gateway picks up the change within a minute or two.
+
+Each endpoint needs its own port, because workloads reach every endpoint through the same gateway host. Ports `1055`, `8082`, and `41641` are reserved by the gateway. An environment can have up to 20 endpoints.
+
+## Connect from a workload
+
+Workloads connect to the endpoint's workload address, not to its private target. The workload address is the gateway host and the endpoint's port, for example `<private-network-host>:5432`.
+
+1. On the **Private Network** page, in the endpoint's row, select the copy icon next to the **Workload address**.
+2. In a component in an allowed project, set the address as configuration, such as environment variables. For example:
+
+   ```bash
+   DB_HOST=<private-network-host>
+   DB_PORT=5432
+   ```
+
+3. Deploy the component to the same environment.
+
+The workload address works only from workloads in allowed projects, in the same organization and environment. The private target is visible only to users who can manage private network access.
+
+## Connection status
+
+The status is shown at the top of the environment tab. To see how many gateway devices are ready, hover over the status.
+
+| Status | Meaning |
+| --- | --- |
+| **Connecting** | The gateway is starting or applying a change. This usually takes a minute or two. |
+| **Tunnel up** | The gateway is connected to your tailnet, and workloads can reach your endpoints. |
+| **Degraded** | Some or all gateway devices aren't ready. The console shows the reason. |
+| **Disconnected** | The gateway isn't connected to your tailnet. |
+| **Disabled** | You disabled private network access. Workloads can't reach your endpoints. |
+| **Deleting** | Private network access is being deleted. This can take a few minutes. |
+
+## Manage the connection
+
+To manage the connection, select the environment tab on the **Private Network** page, and select **Settings**.
+
+### Rotate the auth key
+
+1. [Create a new auth key](#create-an-auth-key).
+2. In **Settings**, paste the new key in **Auth key**.
+3. Select **Save changes**.
+
+The new key replaces the old one, and the gateway devices reconnect with it. To keep the current key, leave **Auth key** blank.
+
+### Edit or delete an endpoint
+
+On the **Private Network** page, in the endpoint's row, select the edit icon to change the endpoint, or the delete icon to remove it. Workloads that use a deleted endpoint can no longer reach it.
+
+### Disable private network access
+
+1. In **Settings**, select **Disable**.
+2. Select **Disable** to confirm.
+
+The tunnel stops, and workloads can't reach your endpoints. Your endpoints and auth key are kept. To start the tunnel again with the same endpoints, select **Enable**.
+
+### Delete private network access
+
+1. In **Settings**, select **Delete**.
+2. Select **Delete** to confirm.
+
+This removes the gateway, all endpoints, and the stored auth key for the environment, and can't be undone. To keep your settings, disable private network access instead. The gateway devices drop off your tailnet by themselves.
+
+## Limits
+
+| Limit | Value |
+| --- | --- |
+| Connections | One per environment |
+| Endpoints | Up to 20 per environment, each on its own port |
+| Allowed projects | Up to 100 per endpoint |
+| Protocols | TCP only |
+| Direction | Outbound only, from Choreo Cloud to your network |
+| VPN provider | Tailscale only |
+
+When a direct connection to your tailnet isn't possible, Tailscale relays the traffic through its [DERP relay servers](https://tailscale.com/docs/reference/derp-servers). The traffic stays end-to-end encrypted, but latency is higher.
+
+## Troubleshoot
+
+| Problem | What to check |
+| --- | --- |
+| The status stays **Connecting** or becomes **Degraded** | The auth key is valid, reusable, and not expired. If not, [rotate the auth key](#rotate-the-auth-key). |
+| The status is **Tunnel up**, but a workload can't connect | The workload's project is allowed for the endpoint, and the workload uses the workload address, not the private target. |
+| The workload connects, but the endpoint doesn't respond | Your subnet router advertises the target's address range, the routes are approved, and your [access policy](#allow-the-gateway-in-your-access-policy) allows the gateway devices to reach the target and port. |
+| You can't add an endpoint | The port isn't already used by another endpoint and isn't reserved. |
+
+## Next steps
+
+- [Data planes](../concepts/architecture/data-planes.mdx)
+- [Access control](./access-control.mdx)
